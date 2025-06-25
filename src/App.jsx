@@ -93,7 +93,6 @@ const CATEGORIES = {
     ja: ['給料', 'お小遣い', '事業所得', '食費', 'ショッピング', '交通', '住居', 'サブスク', '医療', '教育', '冠婚葬祭', 'エンタメ', 'その他']
 };
 
-// 14번 수정: 챌린지 데이터 업데이트
 const allChallenges = [
   { "icon": "🌱", "name": "새싹 저축가", "condition": "첫 거래 내역 작성" },
   { "icon": "✍️", "name": "기록의 시작", "condition": "7일 연속 가계부 작성" },
@@ -113,7 +112,7 @@ const allChallenges = [
   { "icon": "💎", "name": "1억 클럽", "condition": "순자산 1억원 돌파" },
   { "icon": "📈", "name": "우상향 그래프", "condition": "3개월 연속 순자산 증가" },
   { "icon": "📊", "name": "분석의 달인", "condition": "리포트 기능 첫 사용" },
-  { "icon": "�", "name": "자동화의 천재", "condition": "정기 거래 첫 등록" },
+  { "icon": "🤖", "name": "자동화의 천재", "condition": "정기 거래 첫 등록" },
   { "icon": "💼", "name": "자산 관리사", "condition": "3개 이상 자산 등록" },
   { "icon": "📑", "name": "부채 정복자", "condition": "대출 항목 첫 등록 및 상환 시작" },
   { "icon": "🕊️", "name": "부채 제로", "condition": "등록된 대출 항목 모두 상환 완료" },
@@ -148,7 +147,6 @@ const allChallenges = [
   { "icon": "👑", "name": "금융의 지배자", "condition": "30개 이상 챌린지 완료" }
 ].map((c, i) => ({ ...c, id: `chal-${i+1}`, progress: 0, isAchieved: false, target: 1 }));
 
-
 // --- 임시 목업 데이터 ---
 const initialAppData = {
   admin: { 
@@ -170,21 +168,30 @@ const initialAppData = {
   }
 };
 
-
 // --- Helper Components & Data ---
-// 16번 수정: 금액 표시 색상 변경
 const formatCurrency = (value = 0, type) => {
     const colorClass = type === 'income' ? 'text-green-500' : type === 'expense' ? 'text-red-500' : type === 'asset' ? 'text-blue-500' : 'text-slate-800 dark:text-slate-200';
     return <span className={colorClass}>{new Intl.NumberFormat('ko-KR', { style: 'currency', currency: 'KRW' }).format(value)}</span>;
 };
 
 const iconList = { Home, ShoppingCart, Utensils, Wallet, CreditCard, Repeat, Zap, Pill, GraduationCap, Gift, Popcorn, Briefcase, Landmark, TrendingDown, TrendingUp, CircleDollarSign, Building, ShieldCheck, PiggyBank, BarChart2, Tv, Bus, Car, Coffee, Gamepad2, Heart, Music, Phone, Plane, School, Train, TreePalm, Video, Wifi, Wind };
+
 const getLucideIcon = (name) => {
-    const Icon = iconList[name];
-    return Icon ? <Icon /> : <Zap />;
+    const IconComponent = iconList[name];
+    return IconComponent ? <IconComponent /> : <Zap />;
 };
 
-const CATEGORY_ICONS = { '쇼핑': ShoppingCart, '식비': Utensils, '급여': Wallet, '교통': CreditCard, '주거': Home, '구독': Repeat, '의료': Pill, '교육': GraduationCap, '경조사': Gift, '엔터테인먼트': Popcorn, '사업소득': Briefcase, '기타': Zap, };
+const CATEGORY_ICONS_MAP = { 
+    '쇼핑': 'ShoppingCart', '식비': 'Utensils', '급여': 'Wallet', '교통': 'Car', '주거': 'Home', '구독': 'Tv', '의료': 'Pill', '교육': 'GraduationCap', '경조사': 'Gift', '엔터테인먼트': 'Gamepad2', '사업소득': 'Briefcase', '기타': 'Zap',
+    'Salary': 'Wallet', 'Allowance': 'Wallet', 'Business Income': 'Briefcase', 'Food': 'Utensils', 'Shopping': 'ShoppingCart', 'Transport': 'Car', 'Housing': 'Home', 'Subscription': 'Tv', 'Medical': 'Pill', 'Education': 'GraduationCap', 'Events': 'Gift', 'Entertainment': 'Gamepad2', 'Other': 'Zap',
+    '給料': 'Wallet', 'お小遣い': 'Wallet', '事業所得': 'Briefcase', '食費': 'Utensils', 'ショッピング': 'ShoppingCart', '交通': 'Car', '住居': 'Home', 'サブスク': 'Tv', '医療': 'Pill', '教育': 'GraduationCap', '冠婚葬祭': 'Gift', 'エンタメ': 'Gamepad2', 'その他': 'Zap'
+};
+
+const getCategoryIcon = (categoryName) => {
+    const iconName = CATEGORY_ICONS_MAP[categoryName] || 'Zap';
+    return getLucideIcon(iconName);
+};
+
 const ASSET_ICONS = { 'bank': Landmark, 'card': CreditCard, 'cash': Wallet, 'liability': TrendingDown, 'stock': TrendingUp, 'crypto': CircleDollarSign, 'realEstate': Building, 'insurance': ShieldCheck };
 const getAssetIcon = (type) => { const Icon = ASSET_ICONS[type] || Wallet; return <Icon className="h-8 w-8" />; };
 
@@ -196,7 +203,6 @@ const Modal = ({ isOpen, onClose, title, children }) => {
  return ( <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex justify-center items-center p-4" onClick={onClose}> <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-md m-4 transform transition-all" onClick={e => e.stopPropagation()}> <div className="flex justify-between items-center p-6 border-b border-slate-200 dark:border-slate-700"> <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">{title}</h2> <button onClick={onClose} className="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 p-1 rounded-full"><X size={20} /></button> </div> <div className="p-6 overflow-y-auto max-h-[80vh]">{children}</div> </div> </div> );
 };
 
-// 1, 7번 수정: 달력 UI 및 로직 수정
 const CustomDatePicker = ({ selectedDate, onDateChange, onClose }) => {
     const [date, setDate] = useState(selectedDate ? new Date(selectedDate) : new Date());
     const calendarRef = useRef(null);
@@ -216,6 +222,7 @@ const CustomDatePicker = ({ selectedDate, onDateChange, onClose }) => {
     const handleDateSelect = (day) => {
         const newDate = new Date(date.getFullYear(), date.getMonth(), day);
         onDateChange(newDate.toISOString().slice(0, 10));
+        onClose();
     };
 
     return (
@@ -244,7 +251,6 @@ const CustomDatePicker = ({ selectedDate, onDateChange, onClose }) => {
     );
 };
 
-// 10번 수정: 아이콘 선택 컴포넌트 추가
 const IconPicker = ({ onSelectIcon, selectedIcon }) => {
     return (
         <div className="grid grid-cols-6 gap-2 max-h-60 overflow-y-auto border border-slate-200 dark:border-slate-600 p-2 rounded-lg">
@@ -268,7 +274,6 @@ const Sidebar = ({ activeView, setActiveView, isCollapsed, setIsCollapsed, t, cu
     return ( <aside className={`relative bg-slate-800 text-slate-100 p-4 flex flex-col transition-all duration-300 ${isCollapsed ? 'w-20' : 'w-64'}`}> <div className={`flex items-center mb-6 ${isCollapsed ? 'justify-center' : 'justify-between'}`}> {!isCollapsed && <h1 className="text-2xl font-bold text-white">{t.appName}</h1>} <button onClick={() => setIsCollapsed(!isCollapsed)} className="p-2 rounded-lg hover:bg-slate-700"> {isCollapsed ? <ChevronsRight /> : <ChevronsLeft />} </button> </div> <div className="border-t border-b border-slate-700 py-4 mb-4"> <button onClick={() => setCurrentUser('admin')} className={`w-full flex items-center p-3 rounded-lg text-left transition-colors ${currentUser?.id === 'admin' ? 'bg-sky-600' : 'hover:bg-slate-700'}`}> <User className="h-5 w-5 shrink-0" /> {!isCollapsed && <span className="ml-4 font-bold">{t.myLedger}</span>} </button> <div className="mt-2"> <button onClick={() => setCurrentUser('invitedUser1')} className={`w-full flex items-center p-3 rounded-lg text-left transition-colors ${currentUser?.id === 'invitedUser1' ? 'bg-sky-600' : 'hover:bg-slate-700'}`}> <User className="h-5 w-5 shrink-0" /> {!isCollapsed && <span className="ml-4">이수진</span>} </button> </div> </div> <nav className="flex-grow overflow-y-auto"> <ul className="space-y-2">{navItems.map(item => (<li key={item.id}><button onClick={() => setActiveView(item.id)} className={`w-full flex items-center p-3 rounded-lg transition-colors ${activeView === item.id ? 'bg-teal-500' : 'hover:bg-slate-700'} ${isCollapsed ? 'justify-center' : ''}`}><span className="shrink-0">{item.icon}</span>{!isCollapsed && <span className="ml-4 font-medium">{item.label}</span>}</button></li>))}</ul> </nav> <div className="border-t border-slate-700 pt-4 mt-4"> <button onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')} className={`p-3 rounded-lg hover:bg-slate-700 w-full flex items-center ${isCollapsed ? 'justify-center' : ''}`}> {theme === 'light' ? <Moon /> : <Sun />} {!isCollapsed && <span className="ml-4">{theme === 'light' ? t.darkMode : t.lightMode}</span>} </button> </div> </aside> );
 };
 
-// 2, 3, 4, 5, 6번 수정: 대시보드 대규모 개편
 const Dashboard = ({ userData, t, onAddTransaction, setActiveView }) => {
     const defaultStartDate = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().slice(0, 10);
     const defaultEndDate = new Date().toISOString().slice(0, 10);
@@ -278,7 +283,7 @@ const Dashboard = ({ userData, t, onAddTransaction, setActiveView }) => {
     const [isStartCalendarOpen, setStartCalendarOpen] = useState(false);
     const [isEndCalendarOpen, setEndCalendarOpen] = useState(false);
     
-    const { assets = [], transactions = [], budgets = [], recurringTransactions = [] } = userData;
+    const { assets = [], transactions = [], budgets = [] } = userData;
     const { periodIncome, periodExpenses, expenseByCategory, totalSpentOnBudgets, totalBudgetAmount } = useMemo(() => {
         const start = new Date(startDate); start.setHours(0,0,0,0);
         const end = new Date(endDate); end.setHours(23,59,59,999);
@@ -304,16 +309,16 @@ const Dashboard = ({ userData, t, onAddTransaction, setActiveView }) => {
             <header className="flex flex-wrap justify-between items-center gap-4">
                 <div> <h2 className="text-3xl font-bold text-slate-900 dark:text-slate-100">{t.dashboard}</h2> <p className="text-slate-600 dark:text-slate-400 mt-1">{t.dashboardWelcome.replace('{name}', userData.name || '')}</p> </div>
                  <div className="flex items-center gap-2">
-                    <div className="relative"> <button onClick={() => setStartCalendarOpen(s => !s)} className="flex items-center gap-2 text-sm font-medium bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 hover:bg-slate-50 dark:hover:bg-slate-700"> <Calendar size={16} /> {startDate} </button> {isStartCalendarOpen && <CustomDatePicker selectedDate={startDate} onDateChange={(date) => { setStartDate(date); setStartCalendarOpen(false); }} onClose={() => setStartCalendarOpen(false)} />} </div>
+                    <div className="relative"> <button onClick={() => setStartCalendarOpen(s => !s)} className="flex items-center gap-2 text-sm font-medium bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 hover:bg-slate-50 dark:hover:bg-slate-700"> <Calendar size={16} /> {startDate} </button> {isStartCalendarOpen && <CustomDatePicker selectedDate={startDate} onDateChange={setStartDate} onClose={() => setStartCalendarOpen(false)} />} </div>
                     <span>-</span>
-                    <div className="relative"> <button onClick={() => setEndCalendarOpen(e => !e)} className="flex items-center gap-2 text-sm font-medium bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 hover:bg-slate-50 dark:hover:bg-slate-700"> <Calendar size={16} /> {endDate} </button> {isEndCalendarOpen && <CustomDatePicker selectedDate={endDate} onDateChange={(date) => { setEndDate(date); setEndCalendarOpen(false); }} onClose={() => setEndCalendarOpen(false)} />} </div>
+                    <div className="relative"> <button onClick={() => setEndCalendarOpen(e => !e)} className="flex items-center gap-2 text-sm font-medium bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 hover:bg-slate-50 dark:hover:bg-slate-700"> <Calendar size={16} /> {endDate} </button> {isEndCalendarOpen && <CustomDatePicker selectedDate={endDate} onDateChange={setEndDate} onClose={() => setEndCalendarOpen(false)} />} </div>
                  </div>
                  <button onClick={onAddTransaction} className="flex items-center bg-teal-500 text-white font-semibold py-2 px-4 rounded-lg shadow-sm hover:bg-teal-600 transition-colors"> <PlusCircle className="h-5 w-5 mr-2" />{t.addTransaction} </button>
             </header>
 
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
                 <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm"> <h3 className="font-semibold text-slate-500 dark:text-slate-400">{t.netAssets}</h3> <p className="text-3xl font-bold mt-2">{formatCurrency(netAssets, 'asset')}</p> </div>
-                <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm"> <h3 className="font-semibold text-slate-500 dark:text-slate-400">{t.totalBudget}</h3> <p className="text-3xl font-bold text-amber-500 mt-2">{formatCurrency(totalBudgetAmount)}</p> </div>
+                <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm"> <h3 className="font-semibold text-slate-500 dark:text-slate-400">{t.totalBudget}</h3> <p className="text-3xl font-bold text-amber-500 mt-2">{new Intl.NumberFormat('ko-KR', { style: 'currency', currency: 'KRW' }).format(totalBudgetAmount)}</p> </div>
                 <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm"> <h3 className="font-semibold text-slate-500 dark:text-slate-400">{t.income}</h3> <p className="text-3xl font-bold mt-2">{formatCurrency(periodIncome, 'income')}</p> </div>
                 <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm"> <h3 className="font-semibold text-slate-500 dark:text-slate-400">{t.expense}</h3> <p className="text-3xl font-bold mt-2">{formatCurrency(periodExpenses, 'expense')}</p> </div>
             </div>
@@ -324,7 +329,7 @@ const Dashboard = ({ userData, t, onAddTransaction, setActiveView }) => {
                     <ResponsiveContainer width="100%" height={300}>
                         <PieChart>
                             <Pie data={expenseByCategory} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={70} outerRadius={110} fill="#8884d8" paddingAngle={3} labelLine={false}
-                                 label={({ cx, cy, midAngle, innerRadius, outerRadius, percent, index }) => {
+                                 label={({ cx, cy, midAngle, innerRadius, outerRadius, percent }) => {
                                     const RADIAN = Math.PI / 180;
                                     const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
                                     const x = cx + radius * Math.cos(-midAngle * RADIAN);
@@ -335,7 +340,7 @@ const Dashboard = ({ userData, t, onAddTransaction, setActiveView }) => {
                             </Pie>
                             <Tooltip formatter={(value) => new Intl.NumberFormat('ko-KR').format(value) + '원'} />
                             <Legend />
-                            <text x="50%" y="50%" textAnchor="middle" dominantBaseline="middle" className="text-2xl font-bold fill-slate-800 dark:fill-slate-200">{formatCurrency(periodExpenses)}</text>
+                            <text x="50%" y="50%" textAnchor="middle" dominantBaseline="middle" className="text-2xl font-bold fill-slate-800 dark:fill-slate-200">{new Intl.NumberFormat('ko-KR').format(periodExpenses)}</text>
                         </PieChart>
                     </ResponsiveContainer>
                 </div>
@@ -350,7 +355,7 @@ const Dashboard = ({ userData, t, onAddTransaction, setActiveView }) => {
                     <div>
                         <h3 className="font-semibold text-slate-800 dark:text-slate-200 mb-2">{t.recentHistory}</h3>
                         <div className="space-y-2">
-                           {[...transactions].sort((a,b) => new Date(b.date) - new Date(a.date)).slice(0, 3).map(tx => ( <div key={tx.id} className="flex items-center justify-between text-sm"> <div className="flex items-center gap-2"> <div className="p-1.5 rounded-full" style={{backgroundColor: CATEGORY_COLORS[tx.category] ? `${CATEGORY_COLORS[tx.category]}20` : '#F3F4F6'}}>{getLucideIcon(tx.category)}</div> <p className="font-medium text-slate-700 dark:text-slate-300">{tx.description}</p> </div> <p className={`font-semibold text-xs ${tx.type === 'income' ? 'text-green-500' : 'text-red-500'}`}>{tx.type === 'income' ? '+' : '-'}{new Intl.NumberFormat('ko-KR').format(tx.amount)}</p> </div> )) }
+                           {[...transactions].sort((a,b) => new Date(b.date) - new Date(a.date)).slice(0, 3).map(tx => ( <div key={tx.id} className="flex items-center justify-between text-sm"> <div className="flex items-center gap-2"> <div className="p-1.5 rounded-full" style={{backgroundColor: CATEGORY_COLORS[tx.category] ? `${CATEGORY_COLORS[tx.category]}20` : '#F3F4F6'}}>{getCategoryIcon(tx.category)}</div> <p className="font-medium text-slate-700 dark:text-slate-300">{tx.description}</p> </div> <p className={`font-semibold text-xs ${tx.type === 'income' ? 'text-green-500' : 'text-red-500'}`}>{tx.type === 'income' ? '+' : '-'}{new Intl.NumberFormat('ko-KR').format(tx.amount)}</p> </div> )) }
                            <button onClick={() => setActiveView('history')} className="text-sm w-full text-center py-1.5 mt-2 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 font-semibold text-slate-600 dark:text-slate-300">{t.showMore}</button>
                         </div>
                     </div>
@@ -360,7 +365,6 @@ const Dashboard = ({ userData, t, onAddTransaction, setActiveView }) => {
     );
 };
 
-// 8번 수정: 자산 카드 내 버튼 UI/위치 변경
 const Assets = ({ assets, t, onAddTransactionForAsset, onAddAsset }) => (
     <div className="space-y-6">
         <header className="flex justify-between items-center">
@@ -389,7 +393,6 @@ const Assets = ({ assets, t, onAddTransactionForAsset, onAddAsset }) => (
     </div>
 );
 
-// 9번 수정: 고정지출 아이콘 표시
 const RecurringTransactions = ({ recurring, t, onAddRecurring }) => {
     return (
         <div className="space-y-6">
@@ -415,7 +418,6 @@ const RecurringTransactions = ({ recurring, t, onAddRecurring }) => {
     );
 };
 
-// 10, 11, 12, 13번 수정: 예산 페이지 대규모 개편
 const Budgets = ({ budgets, t, onAddBudget }) => {
     return (
         <div className="space-y-6">
@@ -436,10 +438,10 @@ const Budgets = ({ budgets, t, onAddBudget }) => {
                                         <span className="text-teal-500 text-2xl">{getLucideIcon(item.icon)}</span>
                                         <div>
                                             <p className="text-lg font-semibold text-slate-700 dark:text-slate-300">{item.category}</p>
-                                            <p className="text-sm text-slate-500 dark:text-slate-400">{t.spent}: <span className="font-medium text-slate-600 dark:text-slate-300">{formatCurrency(item.spent)}</span></p>
+                                            <p className="text-sm text-slate-500 dark:text-slate-400">{t.spent}: <span className="font-medium text-slate-600 dark:text-slate-300">{new Intl.NumberFormat('ko-KR').format(item.spent)}원</span></p>
                                         </div>
                                     </div>
-                                    <p className="text-sm font-bold text-slate-600 dark:text-slate-400">{formatCurrency(item.budget)}</p>
+                                    <p className="text-sm font-bold text-slate-600 dark:text-slate-400">{new Intl.NumberFormat('ko-KR').format(item.budget)}원</p>
                                 </div>
                                 <div className="mt-4">
                                     <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2.5">
@@ -447,7 +449,7 @@ const Budgets = ({ budgets, t, onAddBudget }) => {
                                     </div>
                                     <div className="flex justify-between text-sm text-slate-500 dark:text-slate-400 mt-2">
                                         <span className={`font-bold ${isExceeded ? 'text-red-500' : ''}`}>{percentage}% {isExceeded && <AlertTriangle className="inline h-4 w-4" />}</span>
-                                        <span>{isExceeded ? formatCurrency(item.spent - item.budget) + ` ${t.budgetExceeded}` : formatCurrency(item.budget - item.spent) + ` ${t.remaining}`}</span>
+                                        <span className={isExceeded ? 'text-red-500' : ''}>{isExceeded ? `${new Intl.NumberFormat('ko-KR').format(item.spent - item.budget)}원 ${t.budgetExceeded}` : `${new Intl.NumberFormat('ko-KR').format(item.budget - item.spent)}원 ${t.remaining}`}</span>
                                     </div>
                                 </div>
                             </div>
@@ -458,7 +460,7 @@ const Budgets = ({ budgets, t, onAddBudget }) => {
                     <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-200 mb-4">{t.budgetVisualizer}</h3>
                     {budgets.length > 0 ? (
                         <ResponsiveContainer width="100%" height={300}>
-                            <BarChart data={budgets} layout="vertical" margin={{ top: 5, right: 20, left: 20, bottom: 5 }}>
+                            <BarChart data={budgets.map(b => ({...b, remaining: b.budget-b.spent < 0 ? 0 : b.budget-b.spent}))} layout="vertical" margin={{ top: 5, right: 20, left: 20, bottom: 5 }}>
                                 <XAxis type="number" hide />
                                 <YAxis type="category" dataKey="category" tickLine={false} axisLine={false} tick={{ fill: '#64748b' }} width={80} />
                                 <Tooltip formatter={(value) => new Intl.NumberFormat('ko-KR').format(value) + '원'} cursor={{fill: 'rgba(241, 245, 249, 0.5)'}}/>
@@ -473,12 +475,10 @@ const Budgets = ({ budgets, t, onAddBudget }) => {
     );
 };
 
-// 10번 수정: 재무 목표 아이콘 추가
-const Goals = ({ goals, t, onAddGoal }) => { return <div className="space-y-6"> <header className="flex justify-between items-center"> <div> <h2 className="text-3xl font-bold text-slate-900 dark:text-slate-100">{t.goalsTitle}</h2> <p className="text-slate-600 dark:text-slate-400 mt-1">{t.goalsDesc}</p> </div> <button onClick={onAddGoal} className="flex items-center bg-teal-500 text-white font-semibold py-2 px-4 rounded-lg shadow-sm hover:bg-teal-600"> <PlusCircle className="h-5 w-5 mr-2" />{t.addGoal} </button> </header> <div className="grid grid-cols-1 md:grid-cols-3 gap-6">{(goals || []).map((goal) => { const percentage = goal.target > 0 ? Math.round((goal.saved / goal.target) * 100) : 0; const isAchieved = goal.saved >= goal.target; return (<div key={goal.id} className={`bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm flex flex-col justify-between ${isAchieved && 'bg-teal-50 dark:bg-teal-900/50'}`}> <div className="flex justify-between items-center"> <div className="flex items-center gap-3"><span className="text-teal-500 text-2xl">{getLucideIcon(goal.icon)}</span><p className="text-lg font-semibold text-slate-800 dark:text-slate-200">{goal.name}</p></div> {isAchieved && <span className="text-xs font-bold text-white bg-teal-500 py-1 px-2 rounded-full flex items-center gap-1"><Sparkles className="h-3 w-3" />{t.achieved}</span>}</div> <div className="mt-2"><span className="text-sm text-slate-500 dark:text-slate-400">{t.savedAmount}: </span><span className="font-bold text-teal-600 dark:text-teal-400">{formatCurrency(goal.saved)}</span></div> <div className="mt-6"><p className="text-right text-sm text-slate-500 dark:text-slate-400">{t.goalAmount}: {formatCurrency(goal.target)}</p><div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2.5 mt-2"><div className="bg-teal-500 h-2.5 rounded-full" style={{ width: `${Math.min(percentage, 100)}%` }}></div></div><p className="text-right text-sm font-bold text-slate-500 dark:text-slate-400 mt-1">{percentage}%</p></div></div>)})}</div> </div> };
-const History = ({ transactions, t, lang }) => { const [startDate, setStartDate] = useState(''); const [endDate, setEndDate] = useState(''); const [searchTerm, setSearchTerm] = useState(''); const [selectedCategory, setSelectedCategory] = useState('All'); const [selectedTag, setSelectedTag] = useState(''); const [isStartCalendarOpen, setStartCalendarOpen] = useState(false); const [isEndCalendarOpen, setEndCalendarOpen] = useState(false); const allTags = useMemo(() => { const tags = new Set(); (transactions || []).forEach(tx => { (tx.tags || []).forEach(tag => tags.add(tag)); }); return Array.from(tags); }, [transactions]); const filteredTransactions = useMemo(() => { return (transactions || []) .filter(tx => { const txDate = new Date(tx.date); if (startDate && txDate < new Date(startDate)) return false; if (endDate && txDate > new Date(endDate)) return false; if (selectedCategory !== 'All' && tx.category !== selectedCategory) return false; if (selectedTag && !(tx.tags || []).includes(selectedTag)) return false; const searchTermLower = searchTerm.toLowerCase(); const descMatch = tx.description.toLowerCase().includes(searchTermLower); const categoryMatch = tx.category.toLowerCase().includes(searchTermLower); const tagsMatch = (tx.tags || []).some(tag => tag.toLowerCase().includes(searchTermLower)); return descMatch || categoryMatch || tagsMatch; }) .sort((a, b) => new Date(b.date) - new Date(a.date)); }, [transactions, startDate, endDate, searchTerm, selectedCategory, selectedTag]); return ( <div className="space-y-6"> <header> <h2 className="text-3xl font-bold text-slate-900 dark:text-slate-100">{t.historyTitle}</h2> <p className="text-slate-600 dark:text-slate-400 mt-1">{t.historyDesc}</p> </header> <div className="bg-white dark:bg-slate-800 p-4 sm:p-6 rounded-2xl shadow-sm"> <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4"> <div className="relative"> <button onClick={() => setStartCalendarOpen(s => !s)} className="w-full text-left flex items-center gap-2 text-sm font-medium bg-slate-100 dark:bg-slate-700 border border-transparent rounded-lg px-3 py-2 hover:bg-slate-200 dark:hover:bg-slate-600"> <Calendar size={16} /> {startDate || t.startDate} </button> {isStartCalendarOpen && <CustomDatePicker selectedDate={startDate} onDateChange={(date) => { setStartDate(date); setStartCalendarOpen(false); }} onClose={() => setStartCalendarOpen(false)} />} </div> <div className="relative"> <button onClick={() => setEndCalendarOpen(e => !e)} className="w-full text-left flex items-center gap-2 text-sm font-medium bg-slate-100 dark:bg-slate-700 border border-transparent rounded-lg px-3 py-2 hover:bg-slate-200 dark:hover:bg-slate-600"> <Calendar size={16} /> {endDate || t.endDate} </button> {isEndCalendarOpen && <CustomDatePicker selectedDate={endDate} onDateChange={(date) => { setEndDate(date); setEndCalendarOpen(false); }} onClose={() => setEndCalendarOpen(false)} />} </div> <div className="relative"> <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" /> <input type="text" placeholder={t.searchPlaceholder} value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="w-full pl-9 p-2 rounded-md bg-slate-100 dark:bg-slate-700 border-transparent focus:ring-2 focus:ring-teal-500"/> </div> </div> <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4"> <div> <label className="text-xs text-slate-500">{t.filterByCategory}</label> <select value={selectedCategory} onChange={e => setSelectedCategory(e.target.value)} className="w-full p-2 rounded-md bg-slate-100 dark:bg-slate-700 border-transparent focus:ring-2 focus:ring-teal-500"> <option value="All">{t.all}</option> {CATEGORIES[lang].map(cat => <option key={cat} value={cat}>{cat}</option>)} </select> </div> <div> <label className="text-xs text-slate-500">{t.filterByTag}</label> <select value={selectedTag} onChange={e => setSelectedTag(e.target.value)} className="w-full p-2 rounded-md bg-slate-100 dark:bg-slate-700 border-transparent focus:ring-2 focus:ring-teal-500"> <option value="">{t.all}</option> {allTags.map(tag => <option key={tag} value={tag}>{tag}</option>)} </select> </div> </div> <div className="space-y-2"> {filteredTransactions.map(tx => ( <div key={tx.id} className="flex items-center justify-between p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700/50"> <div className="flex items-center gap-3"> <div className={`p-2 rounded-full`} style={{backgroundColor: CATEGORY_COLORS[tx.category] ? `${CATEGORY_COLORS[tx.category]}20` : '#F3F4F6'}}> {getLucideIcon(tx.category)} </div> <div> <p className="font-semibold text-slate-700 dark:text-slate-300">{tx.description}</p> <div className="flex items-center gap-2"> <p className="text-sm text-slate-400">{tx.date}</p> {(tx.tags || []).map(tag => <span key={tag} className="text-xs bg-slate-200 dark:bg-slate-600 text-slate-600 dark:text-slate-300 px-1.5 py-0.5 rounded">{tag}</span>)} </div> </div> </div> <p className="font-semibold">{formatCurrency(tx.amount, tx.type)}</p> </div> ))} </div> </div> </div> ); };
+const Goals = ({ goals, t, onAddGoal }) => { return <div className="space-y-6"> <header className="flex justify-between items-center"> <div> <h2 className="text-3xl font-bold text-slate-900 dark:text-slate-100">{t.goalsTitle}</h2> <p className="text-slate-600 dark:text-slate-400 mt-1">{t.goalsDesc}</p> </div> <button onClick={onAddGoal} className="flex items-center bg-teal-500 text-white font-semibold py-2 px-4 rounded-lg shadow-sm hover:bg-teal-600"> <PlusCircle className="h-5 w-5 mr-2" />{t.addGoal} </button> </header> <div className="grid grid-cols-1 md:grid-cols-3 gap-6">{(goals || []).map((goal) => { const percentage = goal.target > 0 ? Math.round((goal.saved / goal.target) * 100) : 0; const isAchieved = goal.saved >= goal.target; return (<div key={goal.id} className={`bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm flex flex-col justify-between ${isAchieved && 'bg-teal-50 dark:bg-teal-900/50'}`}> <div className="flex justify-between items-center"> <div className="flex items-center gap-3"><span className="text-teal-500 text-2xl">{getLucideIcon(goal.icon)}</span><p className="text-lg font-semibold text-slate-800 dark:text-slate-200">{goal.name}</p></div> {isAchieved && <span className="text-xs font-bold text-white bg-teal-500 py-1 px-2 rounded-full flex items-center gap-1"><Sparkles className="h-3 w-3" />{t.achieved}</span>}</div> <div className="mt-2"><span className="text-sm text-slate-500 dark:text-slate-400">{t.savedAmount}: </span><span className="font-bold text-teal-600 dark:text-teal-400">{new Intl.NumberFormat('ko-KR').format(goal.saved)}원</span></div> <div className="mt-6"><p className="text-right text-sm text-slate-500 dark:text-slate-400">{t.goalAmount}: {new Intl.NumberFormat('ko-KR').format(goal.target)}원</p><div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2.5 mt-2"><div className="bg-teal-500 h-2.5 rounded-full" style={{ width: `${Math.min(percentage, 100)}%` }}></div></div><p className="text-right text-sm font-bold text-slate-500 dark:text-slate-400 mt-1">{percentage}%</p></div></div>)})}</div> </div> };
+const History = ({ transactions, t, lang }) => { const [startDate, setStartDate] = useState(''); const [endDate, setEndDate] = useState(''); const [searchTerm, setSearchTerm] = useState(''); const [selectedCategory, setSelectedCategory] = useState('All'); const [selectedTag, setSelectedTag] = useState(''); const [isStartCalendarOpen, setStartCalendarOpen] = useState(false); const [isEndCalendarOpen, setEndCalendarOpen] = useState(false); const allTags = useMemo(() => { const tags = new Set(); (transactions || []).forEach(tx => { (tx.tags || []).forEach(tag => tags.add(tag)); }); return Array.from(tags); }, [transactions]); const filteredTransactions = useMemo(() => { return (transactions || []) .filter(tx => { const txDate = new Date(tx.date); if (startDate && txDate < new Date(startDate)) return false; if (endDate && txDate > new Date(endDate)) return false; if (selectedCategory !== 'All' && tx.category !== selectedCategory) return false; if (selectedTag && !(tx.tags || []).includes(selectedTag)) return false; const searchTermLower = searchTerm.toLowerCase(); const descMatch = tx.description.toLowerCase().includes(searchTermLower); const categoryMatch = tx.category.toLowerCase().includes(searchTermLower); const tagsMatch = (tx.tags || []).some(tag => tag.toLowerCase().includes(searchTermLower)); return descMatch || categoryMatch || tagsMatch; }) .sort((a, b) => new Date(b.date) - new Date(a.date)); }, [transactions, startDate, endDate, searchTerm, selectedCategory, selectedTag]); return ( <div className="space-y-6"> <header> <h2 className="text-3xl font-bold text-slate-900 dark:text-slate-100">{t.historyTitle}</h2> <p className="text-slate-600 dark:text-slate-400 mt-1">{t.historyDesc}</p> </header> <div className="bg-white dark:bg-slate-800 p-4 sm:p-6 rounded-2xl shadow-sm"> <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4"> <div className="relative"> <button onClick={() => setStartCalendarOpen(s => !s)} className="w-full text-left flex items-center gap-2 text-sm font-medium bg-slate-100 dark:bg-slate-700 border border-transparent rounded-lg px-3 py-2 hover:bg-slate-200 dark:hover:bg-slate-600"> <Calendar size={16} /> {startDate || t.startDate} </button> {isStartCalendarOpen && <CustomDatePicker selectedDate={startDate} onDateChange={setStartDate} onClose={() => setStartCalendarOpen(false)} />} </div> <div className="relative"> <button onClick={() => setEndCalendarOpen(e => !e)} className="w-full text-left flex items-center gap-2 text-sm font-medium bg-slate-100 dark:bg-slate-700 border border-transparent rounded-lg px-3 py-2 hover:bg-slate-200 dark:hover:bg-slate-600"> <Calendar size={16} /> {endDate || t.endDate} </button> {isEndCalendarOpen && <CustomDatePicker selectedDate={endDate} onDateChange={setEndDate} onClose={() => setEndCalendarOpen(false)} />} </div> <div className="relative"> <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" /> <input type="text" placeholder={t.searchPlaceholder} value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="w-full pl-9 p-2 rounded-md bg-slate-100 dark:bg-slate-700 border-transparent focus:ring-2 focus:ring-teal-500"/> </div> </div> <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4"> <div> <label className="text-xs text-slate-500">{t.filterByCategory}</label> <select value={selectedCategory} onChange={e => setSelectedCategory(e.target.value)} className="w-full p-2 rounded-md bg-slate-100 dark:bg-slate-700 border-transparent focus:ring-2 focus:ring-teal-500"> <option value="All">{t.all}</option> {CATEGORIES[lang].map(cat => <option key={cat} value={cat}>{cat}</option>)} </select> </div> <div> <label className="text-xs text-slate-500">{t.filterByTag}</label> <select value={selectedTag} onChange={e => setSelectedTag(e.target.value)} className="w-full p-2 rounded-md bg-slate-100 dark:bg-slate-700 border-transparent focus:ring-2 focus:ring-teal-500"> <option value="">{t.all}</option> {allTags.map(tag => <option key={tag} value={tag}>{tag}</option>)} </select> </div> </div> <div className="space-y-2"> {filteredTransactions.map(tx => ( <div key={tx.id} className="flex items-center justify-between p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700/50"> <div className="flex items-center gap-3"> <div className={`p-2 rounded-full`} style={{backgroundColor: CATEGORY_COLORS[tx.category] ? `${CATEGORY_COLORS[tx.category]}20` : '#F3F4F6'}}> {getCategoryIcon(tx.category)} </div> <div> <p className="font-semibold text-slate-700 dark:text-slate-300">{tx.description}</p> <div className="flex items-center gap-2"> <p className="text-sm text-slate-400">{tx.date}</p> {(tx.tags || []).map(tag => <span key={tag} className="text-xs bg-slate-200 dark:bg-slate-600 text-slate-600 dark:text-slate-300 px-1.5 py-0.5 rounded">{tag}</span>)} </div> </div> </div> <p className="font-semibold">{formatCurrency(tx.amount, tx.type)}</p> </div> ))} </div> </div> </div> ); };
 const Challenges = ({ challenges, t }) => { return <div className="space-y-6"> <header><div><h2 className="text-3xl font-bold text-slate-900 dark:text-slate-100">{t.challengesTitle}</h2><p className="text-slate-600 dark:text-slate-400 mt-1">{t.challengesDesc}</p></div></header> <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">{(challenges || []).map(c => (<div key={c.id} className={`bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border-2 ${c.isAchieved ? 'border-amber-400' : 'border-transparent'}`}> <div className="flex flex-col items-center text-center"> <span className="text-5xl mb-3">{c.icon}</span> <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-200">{c.name}</h3> <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{c.condition}</p> </div> </div>))}</div> </div> };
 
-// 15번 수정: 리포트 페이지 그래프, 날짜 선택 기능 개선
 const Reports = ({ transactions, t }) => {
     const [startDate, setStartDate] = useState(new Date(new Date().setMonth(new Date().getMonth() - 1)).toISOString().slice(0,10));
     const [endDate, setEndDate] = useState(new Date().toISOString().slice(0,10));
@@ -505,9 +505,9 @@ const Reports = ({ transactions, t }) => {
             <header className="flex flex-wrap justify-between items-center gap-4">
                 <div> <h2 className="text-3xl font-bold text-slate-900 dark:text-slate-100">{t.reportsTitle}</h2> <p className="text-slate-600 dark:text-slate-400 mt-1">{t.reportsDesc}</p> </div>
                 <div className="flex items-center gap-2">
-                    <div className="relative"> <button onClick={() => setStartCalendarOpen(s => !s)} className="flex items-center gap-2 text-sm font-medium bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 hover:bg-slate-50 dark:hover:bg-slate-700"> <Calendar size={16} /> {startDate} </button> {isStartCalendarOpen && <CustomDatePicker selectedDate={startDate} onDateChange={(date) => { setStartDate(date); setStartCalendarOpen(false); }} onClose={() => setStartCalendarOpen(false)} />} </div>
+                    <div className="relative"> <button onClick={() => setStartCalendarOpen(s => !s)} className="flex items-center gap-2 text-sm font-medium bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 hover:bg-slate-50 dark:hover:bg-slate-700"> <Calendar size={16} /> {startDate} </button> {isStartCalendarOpen && <CustomDatePicker selectedDate={startDate} onDateChange={setStartDate} onClose={() => setStartCalendarOpen(false)} />} </div>
                     <span>-</span>
-                    <div className="relative"> <button onClick={() => setEndCalendarOpen(e => !e)} className="flex items-center gap-2 text-sm font-medium bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 hover:bg-slate-50 dark:hover:bg-slate-700"> <Calendar size={16} /> {endDate} </button> {isEndCalendarOpen && <CustomDatePicker selectedDate={endDate} onDateChange={(date) => { setEndDate(date); setEndCalendarOpen(false); }} onClose={() => setEndCalendarOpen(false)} />} </div>
+                    <div className="relative"> <button onClick={() => setEndCalendarOpen(e => !e)} className="flex items-center gap-2 text-sm font-medium bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 hover:bg-slate-50 dark:hover:bg-slate-700"> <Calendar size={16} /> {endDate} </button> {isEndCalendarOpen && <CustomDatePicker selectedDate={endDate} onDateChange={setEndDate} onClose={() => setEndCalendarOpen(false)} />} </div>
                 </div>
             </header>
             <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm">
@@ -535,17 +535,17 @@ const AddAssetModal = ({ isOpen, onClose, onSubmit, t }) => { const handleSubmit
 const AddRecurringModal = ({ isOpen, onClose, onSubmit, t, lang }) => {
     const [icon, setIcon] = useState('Repeat');
     const handleSubmit = (e) => { e.preventDefault(); const formData = new FormData(e.target); const data = { name: formData.get('name'), amount: parseFloat(formData.get('amount')), category: formData.get('category'), nextDueDate: formData.get('nextDueDate'), type: formData.get('type'), icon }; onSubmit(data); };
-    return ( <Modal isOpen={isOpen} onClose={onClose} title={t.newRecurring}> <form onSubmit={handleSubmit} className="space-y-4"> <div><label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-1">{t.recurringName}</label><input type="text" name="name" placeholder="예: 넷플릭스 구독료" required className="w-full p-2 rounded-md bg-slate-100 dark:bg-slate-700" /></div> <div><label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-1">{t.icon}</label><IconPicker onSelectIcon={setIcon} selectedIcon={icon} /></div> <div className="grid grid-cols-2 gap-4"> <div><label>{t.amount}</label><input type="number" name="amount" required className="w-full p-2 rounded-md bg-slate-100 dark:bg-slate-700" /></div> <div><label>{t.transactionType}</label><select name="type" required className="w-full p-2 rounded-md bg-slate-100 dark:bg-slate-700"><option value="expense">{t.expense}</option><option value="income">{t.income}</option></select></div> </div> <div><label>{t.category}</label><select name="category" required className="w-full p-2 rounded-md bg-slate-100 dark:bg-slate-700"><option value="">{t.select}</option>{CATEGORIES[lang].map(cat => <option key={cat} value={cat}>{cat}</option>)}</select></div> <div><label>{t.nextDueDate}</label><input type="date" name="nextDueDate" defaultValue={new Date().toISOString().substring(0, 10)} required className="w-full p-2 rounded-md bg-slate-100 dark:bg-slate-700" /></div> <div className="flex justify-end gap-3 pt-4"><button type="button" onClick={onClose} className="px-4 py-2 rounded-lg">{t.cancel}</button><button type="submit" className="px-4 py-2 text-white bg-teal-500 rounded-lg">{t.add}</button></div> </form> </Modal> );
+    return ( <Modal isOpen={isOpen} onClose={onClose} title={t.newRecurring}> <form onSubmit={handleSubmit} className="space-y-4"> <div><label htmlFor="rec-name" className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-1">{t.recurringName}</label><input id="rec-name" type="text" name="name" placeholder="예: 넷플릭스 구독료" required className="w-full p-2 rounded-md bg-slate-100 dark:bg-slate-700" /></div> <div><label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-1">{t.icon}</label><IconPicker onSelectIcon={setIcon} selectedIcon={icon} /></div> <div className="grid grid-cols-2 gap-4"> <div><label htmlFor="rec-amount">{t.amount}</label><input id="rec-amount" type="number" name="amount" required className="w-full p-2 rounded-md bg-slate-100 dark:bg-slate-700" /></div> <div><label htmlFor="rec-type">{t.transactionType}</label><select id="rec-type" name="type" required className="w-full p-2 rounded-md bg-slate-100 dark:bg-slate-700"><option value="expense">{t.expense}</option><option value="income">{t.income}</option></select></div> </div> <div><label htmlFor="rec-cat">{t.category}</label><select id="rec-cat" name="category" required className="w-full p-2 rounded-md bg-slate-100 dark:bg-slate-700"><option value="">{t.select}</option>{CATEGORIES[lang].map(cat => <option key={cat} value={cat}>{cat}</option>)}</select></div> <div><label htmlFor="rec-date">{t.nextDueDate}</label><input id="rec-date" type="date" name="nextDueDate" defaultValue={new Date().toISOString().substring(0, 10)} required className="w-full p-2 rounded-md bg-slate-100 dark:bg-slate-700" /></div> <div className="flex justify-end gap-3 pt-4"><button type="button" onClick={onClose} className="px-4 py-2 rounded-lg">{t.cancel}</button><button type="submit" className="px-4 py-2 text-white bg-teal-500 rounded-lg">{t.add}</button></div> </form> </Modal> );
 };
 const AddBudgetModal = ({ isOpen, onClose, onSubmit, t }) => {
     const [icon, setIcon] = useState('ShoppingCart');
     const handleSubmit = (e) => { e.preventDefault(); const formData = new FormData(e.target); const data = { category: formData.get('category'), budget: parseFloat(formData.get('budget')), spent: 0, icon, id: `bud-mock-${Date.now()}` }; onSubmit(data); };
-    return ( <Modal isOpen={isOpen} onClose={onClose} title={t.newBudget}> <form onSubmit={handleSubmit} className="space-y-4"> <div><label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-1">{t.categoryName}</label><input type="text" name="category" required className="w-full p-2 rounded-md bg-slate-100 dark:bg-slate-700" /></div> <div><label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-1">{t.icon}</label><IconPicker onSelectIcon={setIcon} selectedIcon={icon} /></div> <div><label>{t.budgetAmount}</label><input type="number" name="budget" placeholder="300000" required className="w-full p-2 rounded-md bg-slate-100 dark:bg-slate-700" /></div> <div className="flex justify-end gap-3 pt-4"><button type="button" onClick={onClose} className="px-4 py-2 rounded-lg">{t.cancel}</button><button type="submit" className="px-4 py-2 text-white bg-teal-500 rounded-lg">{t.add}</button></div> </form> </Modal> );
+    return ( <Modal isOpen={isOpen} onClose={onClose} title={t.newBudget}> <form onSubmit={handleSubmit} className="space-y-4"> <div><label htmlFor="bud-cat" className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-1">{t.categoryName}</label><input id="bud-cat" type="text" name="category" required className="w-full p-2 rounded-md bg-slate-100 dark:bg-slate-700" /></div> <div><label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-1">{t.icon}</label><IconPicker onSelectIcon={setIcon} selectedIcon={icon} /></div> <div><label htmlFor="bud-amount">{t.budgetAmount}</label><input id="bud-amount" type="number" name="budget" placeholder="300000" required className="w-full p-2 rounded-md bg-slate-100 dark:bg-slate-700" /></div> <div className="flex justify-end gap-3 pt-4"><button type="button" onClick={onClose} className="px-4 py-2 rounded-lg">{t.cancel}</button><button type="submit" className="px-4 py-2 text-white bg-teal-500 rounded-lg">{t.add}</button></div> </form> </Modal> );
 };
 const AddGoalModal = ({ isOpen, onClose, onSubmit, t }) => {
     const [icon, setIcon] = useState('Target');
     const handleSubmit = (e) => { e.preventDefault(); const formData = new FormData(e.target); onSubmit({ name: formData.get('name'), target: parseFloat(formData.get('target')), saved: 0, icon, id: `goal-mock-${Date.now()}` }); };
-    return ( <Modal isOpen={isOpen} onClose={onClose} title={t.newGoal}> <form onSubmit={handleSubmit} className="space-y-4"> <div><label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-1">{t.goalName}</label><input type="text" name="name" required className="w-full p-2 rounded-md bg-slate-100 dark:bg-slate-700" /></div> <div><label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-1">{t.icon}</label><IconPicker onSelectIcon={setIcon} selectedIcon={icon} /></div> <div><label>{t.targetAmount}</label><input type="number" name="target" placeholder="5000000" required className="w-full p-2 rounded-md bg-slate-100 dark:bg-slate-700" /></div> <div className="flex justify-end gap-3 pt-4"><button type="button" onClick={onClose} className="px-4 py-2 rounded-lg">{t.cancel}</button><button type="submit" className="px-4 py-2 text-white bg-teal-500 rounded-lg">{t.add}</button></div> </form> </Modal> );
+    return ( <Modal isOpen={isOpen} onClose={onClose} title={t.newGoal}> <form onSubmit={handleSubmit} className="space-y-4"> <div><label htmlFor="goal-name" className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-1">{t.goalName}</label><input id="goal-name" type="text" name="name" required className="w-full p-2 rounded-md bg-slate-100 dark:bg-slate-700" /></div> <div><label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-1">{t.icon}</label><IconPicker onSelectIcon={setIcon} selectedIcon={icon} /></div> <div><label htmlFor="goal-target">{t.targetAmount}</label><input id="goal-target" type="number" name="target" placeholder="5000000" required className="w-full p-2 rounded-md bg-slate-100 dark:bg-slate-700" /></div> <div className="flex justify-end gap-3 pt-4"><button type="button" onClick={onClose} className="px-4 py-2 rounded-lg">{t.cancel}</button><button type="submit" className="px-4 py-2 text-white bg-teal-500 rounded-lg">{t.add}</button></div> </form> </Modal> );
 };
 
 // --- Main Application ---
@@ -560,7 +560,6 @@ export default function App() {
   const [modalState, setModalState] = useState({ transaction: false, asset: false, recurring: false, budget: false, goal: false });
   const [prefilledAsset, setPrefilledAsset] = useState(null);
 
-  // 17번 수정: 다크/라이트 모드 기능 수정
   useEffect(() => {
     const root = window.document.documentElement;
     root.classList.remove(theme === 'dark' ? 'light' : 'dark');
@@ -591,7 +590,8 @@ export default function App() {
   const handleAddData = (collectionName, data) => {
     const newItem = { ...data, id: `mock-${collectionName}-${Date.now()}` };
     
-    let updatedData = { ...userData, [collectionName]: [...(userData[collectionName] || []), newItem] };
+    const updatedData = { ...userData };
+    updatedData[collectionName] = [...(updatedData[collectionName] || []), newItem];
 
     if (collectionName === 'transactions') {
         const assetIndex = updatedData.assets.findIndex(a => a.id === newItem.assetId);
@@ -651,4 +651,3 @@ export default function App() {
     </div>
   );
 }
-�
